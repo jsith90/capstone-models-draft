@@ -99,13 +99,13 @@ def table_booking_submit(request):
 def user_panel(request):
     user = request.user
     table_bookings = Table_Booking.objects.filter(user=user).order_by('day', 'time')
-    return render(request, 'user_panel.html', {
+    return render(request, 'booking/user_panel.html', {
         'user':user,
         'table_bookings':table_bookings,
     })
 
 def user_update(request, id):
-    table_booking = Table_booking.objects.get(pk=id)
+    table_booking = Table_Booking.objects.get(pk=id)
     user_date_selected = table_booking.day
     #Copy  booking:
     today = datetime.today()
@@ -114,7 +114,7 @@ def user_update(request, id):
     #24h if statement in template:
     delta24 = (user_date_selected).strftime('%Y-%m-%d') >= (today + timedelta(days=1)).strftime('%Y-%m-%d')
     #Calling 'validWeekday' Function to Loop days you want in the next 21 days:
-    days_open = valid_days(22)
+    days_open = valid_day(22)
 
     #Only show the days that are not full:
     validate_days = is_day_valid(days_open)
@@ -131,8 +131,8 @@ def user_update(request, id):
         return redirect('user_update_submit', id=id)
 
 
-    return render(request, 'user_update.html', {
-            'weekdays':weekdays,
+    return render(request, 'booking/user_update.html', {
+            'days_open':days_open,
             'validate_days':validate_days,
             'delta24': delta24,
             'id': id,
@@ -153,9 +153,9 @@ def user_update_submit(request, id):
     table = request.session.get('table')
     
     #Only show the time of the day that has not been selected before and the time he is editing:
-    hour = checkEditTime(times, day, id)
-    table_booking = Table_booking.objects.get(pk=id)
-    user_selected_time = appointment.time
+    hour = check_edit_time(times, day, id)
+    table_booking = Table_Booking.objects.get(pk=id)
+    user_selected_time = table_booking.time
     if request.method == 'POST':
         time = request.POST.get("time")
         date = day_to_day_open(day)
@@ -186,7 +186,7 @@ def user_update_submit(request, id):
         return redirect('user_panel')
 
 
-    return render(request, 'user_update_submit.html', {
+    return render(request, 'booking/user_update_submit.html', {
         'times':hour,
         'id': id,
     })
@@ -198,9 +198,9 @@ def staff_panel(request):
     strdeltatime = deltatime.strftime('%Y-%m-%d')
     max_date = strdeltatime
     #Only show the Appointments 21 days from today
-    items = Table_Bookings.objects.filter(day__range=[min_date, max_date]).order_by('day', 'time')
+    items = Table_Booking.objects.filter(day__range=[min_date, max_date]).order_by('day', 'time')
 
-    return render(request, 'staff_panel.html', {
+    return render(request, 'booking/staff_panel.html', {
         'items':items,
     })
 
