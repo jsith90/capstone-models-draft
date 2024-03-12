@@ -8,7 +8,17 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>THis is the base file</h1>
+    <h1>This is the base file</h1>
+      <!--Messages Start-->
+      {% if messages %}
+      {% for message in messages %}
+          <div class="alert alert-success  alert-dismissible fade show text-center " role="alert">
+              <h3 class="display-3">{{ message }}</h3>
+              <!-- <button type="button" class="btn-close fs-1 position-absolute top-50 start-0 translate-middle-y" data-bs-dismiss="alert" aria-label="Close"></button> -->
+          </div>
+      {% endfor %}
+      {% endif %}
+      <!--Messages End-->
     {% block content %}
     {% endblock %}
     
