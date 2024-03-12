@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from .models import *
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 def index(request):
     return render(request, "booking/index.html",{})
@@ -96,6 +97,7 @@ def table_booking_submit(request):
         'times': available_times,
     })
 
+@login_required
 def user_panel(request):
     user = request.user
     table_bookings = Table_Booking.objects.filter(user=user).order_by('day', 'time')

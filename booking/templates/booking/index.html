@@ -3,8 +3,11 @@
 
 {% block content %}
     <h2>This is the index file</h2>
+    {% if user.is_authenticated %}
     <a href="{% url 'table_booking' %}">table booking</a><br>
-    <a href="{% url 'staff_panel' %}">staff panel</a><br>
     <a href="{% url 'user_panel' %}">user panel</a><br>
-
+    {% endif %}
+    {% if user.is_superuser %}
+    <a href="{% url 'staff_panel' %}">staff panel</a><br>
+    {% endif %}
 {% endblock %}

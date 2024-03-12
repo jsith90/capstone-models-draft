@@ -9,6 +9,21 @@
 </head>
 <body>
     <h1>This is the base file</h1>
+    {% if user.is_authenticated %}
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+      </li>
+    {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'register_user' %}">Register</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'login_user' %}">Login</a>
+      </li>
+    </ul>
+    {% endif %}
+
       <!--Messages Start-->
       {% if messages %}
       {% for message in messages %}
