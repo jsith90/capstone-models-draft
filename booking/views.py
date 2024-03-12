@@ -15,15 +15,15 @@ def table_booking(request):
     
 
     if request.method == 'POST':
-        seats = request.POST.get('seats')
+        table = request.POST.get('table')
         day = request.POST.get('day')
-        if seats == None:
-            messages.success(request, "Please Select Number of Seats!")
+        if table == None:
+            messages.success(request, "Please Select Your Table!")
             return redirect('table_booking')
 
         #Store day and service in django session:
         request.session['day'] = day
-        request.session['seats'] = seats
+        request.session['table'] = table
 
         return redirect('table_booking_submit')
 
@@ -46,16 +46,16 @@ def table_booking_submit(request):
 
     #Get stored data from django session:
     day = request.session.get('day')
-    seats = request.session.get('seats')
+    table = request.session.get('table')
     
     #Only show the time of the day that has not been selected before:
     # hour = check_time(times, day)
-    available_times = check_time(times, day, seats)
+    available_times = check_time(times, day, table)
     if request.method == 'POST':
         time = request.POST.get("time")
         date = day_to_day_open(day)
 
-        if seats != None:
+        if table != None:
             if day <= max_date and day >= min_date:
                 if date == 'Thursday' or date == 'Friday' or date == 'Saturday' or date == 'Sunday':
                     if Table_Booking.objects.filter(day=day).count() < 40:
@@ -63,7 +63,7 @@ def table_booking_submit(request):
                         # if Table_Booking.objects.filter(day=day, time=time).count() < 1:
                             Table_Booking_Form = Table_Booking.objects.get_or_create(
                                 user = user,
-                                seats = seats,
+                                table = table,
                                 day = day,
                                 time = time,
                             )
@@ -78,13 +78,18 @@ def table_booking_submit(request):
             else:
                     messages.success(request, "The Selected Date Isn't In The Correct Time Period!")
         else:
-            messages.success(request, "Please Select The Number of Seats!")
+            messages.success(request, "Please Select Your Table!")
     if not available_times:
         messages.warning(request, "That booking is no longer available.")
+        # Define days_open using valid_day function
+        days_open = valid_day(22)
+        # Define validate_days using is_day_valid function
+        validate_days = is_day_valid(days_open)
         return render(request, 'booking/table_booking.html', {
             'days_open': days_open,
             'validate_days': validate_days,
         })
+        # return render(request, 'booking/table_booking.html')
 
     return render(request, 'booking/table_booking_submit.html', {
         # 'times':hour,
@@ -116,12 +121,12 @@ def user_update(request, id):
     
 
     if request.method == 'POST':
-        seats = request.POST.get('seats')
+        table = request.POST.get('table')
         day = request.POST.get('day')
 
         #Store day and service in django session:
         request.session['day'] = day
-        request.session['seats'] = seats
+        request.session['table'] = table
 
         return redirect('user_update_submit', id=id)
 
@@ -145,7 +150,7 @@ def user_update_submit(request, id):
     max_date = strdeltatime
 
     day = request.session.get('day')
-    seats = request.session.get('seats')
+    table = request.session.get('table')
     
     #Only show the time of the day that has not been selected before and the time he is editing:
     hour = checkEditTime(times, day, id)
@@ -155,14 +160,14 @@ def user_update_submit(request, id):
         time = request.POST.get("time")
         date = day_to_day_open(day)
 
-        if seats != None:
+        if table != None:
             if day <= max_date and day >= min_date:
                 if date == 'Thursday' or date == 'Friday' or date == 'Saturday' or date == 'Sunday':
                     if Table_Booking.objects.filter(day=day).count() < 40:
                         if Table_Booking.objects.filter(day=day, time=time).count() < 1 or user_selected_time == time:
                             Table_Booking_Form = Table_Booking.objects.filter(pk=id).update(
                                 user = user,
-                                seats = seats,
+                                table = table,
                                 day = day,
                                 time = time,
                             ) 
@@ -177,7 +182,7 @@ def user_update_submit(request, id):
             else:
                     messages.success(request, "The Selected Date Isn't In The Correct Time Period!")
         else:
-            messages.success(request, "Please Select Number of Seats!")
+            messages.success(request, "Please Select Your Table!")
         return redirect('user_panel')
 
 
@@ -230,7 +235,7 @@ def is_day_valid(x):
 #             x.append(k)
 #     return x
 
-def check_time(times, day, seats):
+def check_time(times, day, table):
     # Get all bookings for the given day
     bookings = Table_Booking.objects.filter(day=day)
     
@@ -240,7 +245,7 @@ def check_time(times, day, seats):
     # Iterate through each time slot
     for time in times:
         # Check if there's any booking for this time slot
-        booking_exists = bookings.filter(time=time, seats=seats).exists()
+        booking_exists = bookings.filter(time=time, table=table).exists()
         
         # If no booking exists, add the time slot to available times
         if not booking_exists:
