@@ -26,6 +26,7 @@
                 <p class="list-group mt-2">Time: {{ table_booking.time }}</p>
                 <p class="list-group mt-2">Table {{ table_booking.table }}</p>
                 {% if user.is_authenticated and table_booking.user == user %}
+                  {% if table_booking.day > today %}
                 <div class="mt-3 mb-2">
                     <div class="card-footer text-body-secondary">
                         <button onclick="document.getElementById('id02').style.display='block'" class="btn btn-outline-danger btn-sm">Edit Booking</button>
@@ -60,6 +61,7 @@
                           </div>
                     </div>
                 </div>
+                  {% endif %}
                 {% endif %}
             </div>
               {% endif %}
