@@ -8,27 +8,17 @@ def index(request):
     return render(request, "booking/index.html",{})
 
 def table_booking(request):
-    #Calling 'validWeekday' Function to Loop days you want in the next 21 days:
     days_open = valid_day(22)
-
-    #Only show the days that are not full:
     validate_days = is_day_valid(days_open)
-    
-
     if request.method == 'POST':
         table = request.POST.get('table')
         day = request.POST.get('day')
         if table == None:
             messages.success(request, "Please Select Your Table!")
             return redirect('table_booking')
-
-        #Store day and service in django session:
         request.session['day'] = day
         request.session['table'] = table
-
         return redirect('table_booking_submit')
-
-
     return render(request, 'booking/table_booking.html', {
             'days_open':days_open,
             'validate_days':validate_days,
@@ -44,24 +34,17 @@ def table_booking_submit(request):
     deltatime = today + timedelta(days=21)
     strdeltatime = deltatime.strftime('%Y-%m-%d')
     max_date = strdeltatime
-
-    #Get stored data from django session:
     day = request.session.get('day')
     table = request.session.get('table')
-    
-    #Only show the time of the day that has not been selected before:
-    # hour = check_time(times, day)
     available_times = check_time(times, day, table)
     if request.method == 'POST':
         time = request.POST.get("time")
         date = day_to_day_open(day)
-
         if table != None:
             if day <= max_date and day >= min_date:
                 if date == 'Thursday' or date == 'Friday' or date == 'Saturday' or date == 'Sunday':
                     if Table_Booking.objects.filter(day=day).count() < 40:
                         if time in available_times:
-                        # if Table_Booking.objects.filter(day=day, time=time).count() < 1:
                             Table_Booking_Form = Table_Booking.objects.get_or_create(
                                 user = user,
                                 table = table,
@@ -82,18 +65,13 @@ def table_booking_submit(request):
             messages.success(request, "Please Select Your Table!")
     if not available_times:
         messages.warning(request, "That booking is no longer available.")
-        # Define days_open using valid_day function
         days_open = valid_day(22)
-        # Define validate_days using is_day_valid function
         validate_days = is_day_valid(days_open)
         return render(request, 'booking/table_booking.html', {
             'days_open': days_open,
             'validate_days': validate_days,
         })
-        # return render(request, 'booking/table_booking.html')
-
     return render(request, 'booking/table_booking_submit.html', {
-        # 'times':hour,
         'times': available_times,
     })
 
@@ -109,30 +87,17 @@ def user_panel(request):
 def user_update(request, id):
     table_booking = Table_Booking.objects.get(pk=id)
     user_date_selected = table_booking.day
-    #Copy  booking:
     today = datetime.today()
     min_date = today.strftime('%Y-%m-%d')
-
-    #24h if statement in template:
     delta24 = (user_date_selected).strftime('%Y-%m-%d') >= (today + timedelta(days=1)).strftime('%Y-%m-%d')
-    #Calling 'validWeekday' Function to Loop days you want in the next 21 days:
     days_open = valid_day(22)
-
-    #Only show the days that are not full:
     validate_days = is_day_valid(days_open)
-    
-
     if request.method == 'POST':
         table = request.POST.get('table')
         day = request.POST.get('day')
-
-        #Store day and service in django session:
         request.session['day'] = day
         request.session['table'] = table
-
         return redirect('user_update_submit', id=id)
-
-
     return render(request, 'booking/user_update.html', {
             'days_open':days_open,
             'validate_days':validate_days,
@@ -150,18 +115,14 @@ def user_update_submit(request, id):
     deltatime = today + timedelta(days=21)
     strdeltatime = deltatime.strftime('%Y-%m-%d')
     max_date = strdeltatime
-
     day = request.session.get('day')
     table = request.session.get('table')
-    
-    #Only show the time of the day that has not been selected before and the time he is editing:
     hour = check_edit_time(times, day, id)
     table_booking = Table_Booking.objects.get(pk=id)
     user_selected_time = table_booking.time
     if request.method == 'POST':
         time = request.POST.get("time")
         date = day_to_day_open(day)
-
         if table != None:
             if day <= max_date and day >= min_date:
                 if date == 'Thursday' or date == 'Friday' or date == 'Saturday' or date == 'Sunday':
@@ -186,8 +147,6 @@ def user_update_submit(request, id):
         else:
             messages.success(request, "Please Select Your Table!")
         return redirect('user_panel')
-
-
     return render(request, 'booking/user_update_submit.html', {
         'times':hour,
         'id': id,
@@ -199,9 +158,7 @@ def staff_panel(request):
     deltatime = today + timedelta(days=21)
     strdeltatime = deltatime.strftime('%Y-%m-%d')
     max_date = strdeltatime
-    #Only show the Appointments 21 days from today
     items = Table_Booking.objects.filter(day__range=[min_date, max_date]).order_by('day', 'time')
-
     return render(request, 'booking/staff_panel.html', {
         'items':items,
     })
@@ -212,7 +169,6 @@ def day_to_day_open(x):
     return y
 
 def valid_day(days):
-    #Loop days you want in the next 21 days:
     today = datetime.now()
     valid_days = []
     for i in range (0, days):
@@ -229,34 +185,16 @@ def is_day_valid(x):
             validate_days.append(j)
     return validate_days
 
-# def check_time(times, day):
-#     #Only show the time of the day that has not been selected before:
-#     x = []
-#     for k in times:
-#         if Table_Booking.objects.filter(day=day, time=k).count() < 1:
-#             x.append(k)
-#     return x
-
 def check_time(times, day, table):
-    # Get all bookings for the given day
     bookings = Table_Booking.objects.filter(day=day)
-    
-    # Initialize a list to store available times
     available_times = []
-    
-    # Iterate through each time slot
     for time in times:
-        # Check if there's any booking for this time slot
         booking_exists = bookings.filter(time=time, table=table).exists()
-        
-        # If no booking exists, add the time slot to available times
         if not booking_exists:
             available_times.append(time)
-    
     return available_times
 
 def check_edit_time(times, day, id):
-    #Only show the time of the day that has not been selected before:
     x = []
     table_booking = Table_Booking.objects.get(pk=id)
     time = table_booking.time
@@ -266,11 +204,17 @@ def check_edit_time(times, day, id):
     return x
 
 def delete_booking(request, booking_id):
-	table_booking = Table_Booking.objects.get(pk=booking_id)
-	if request.user.is_authenticated:
-		table_booking.delete()
-		messages.success(request, ("Booking successfully cancelled!"))
-		return redirect('user_panel')
-	else:
-		messages.success(request, ("You aren't authorised to do that!"))
-		return redirect('user_panel')
+    table_booking = Table_Booking.objects.get(pk=booking_id)
+    if request.user.is_authenticated:
+        today = datetime.today()
+        booking_date = table_booking.day
+        min_deletion_date = today + timedelta(days=1)
+        if booking_date >= min_deletion_date.date():
+            table_booking.delete()
+            messages.success(request, ("Booking successfully cancelled!"))
+            return redirect ('user_panel')
+        else:
+            messages.success(request, "You cannot delete this booking as it is less than 24 hours ahead of the booking time.")
+    else:
+        messages.success(request, ("You aren't authorised to do that!"))
+        return redirect('user_panel')

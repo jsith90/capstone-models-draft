@@ -1,13 +1,11 @@
-<title>User Panel</title>
+<title>Your Bookings</title>
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-
 {% if user.is_authenticated %}
 <h1 class=" ms-5 mt-5 ">User Panel</h1>
-
     <div class="shadow p-4 mb-5 bg-body bg-body rounded text-black  m-5 ">
-        <h2 class="">User Info:</h2>
+        <h2 class="">Your Info:</h2>
         <ul class="list-group fs-4 mt-3">
             <li class="list-group mt-2">First Name: {{ user.first_name }}</li>
             <li class="list-group mt-2">Last Name: {{ user.last_name }}</li>
@@ -15,8 +13,6 @@
             <li class="list-group mt-2">Email: {{ user.email}}</li>
         </ul>
     </div>
-
-        <!--Appointment Loop-->
     {% if table_bookings.count > 0 %}
     <div class="mt-5 ">
         <h1 class=" ms-5">Bookings:</h1>
@@ -26,10 +22,25 @@
                 <p class="list-group mt-2">Day: {{ table_booking.day }}</p>
                 <p class="list-group mt-2">Time: {{ table_booking.time }}</p>
                 <p class="list-group mt-2">Table {{ table_booking.table }}</p>
+                {% if user.is_authenticated and table_booking.user == user %}
                 <div class="mt-3 mb-2">
-                    <a class="btn btn-primary rounded-3 p-2" href="{% url 'user_update' table_booking.id %}">Edit Booking</a>
                     <div class="card-footer text-body-secondary">
-                        {% if user.is_authenticated %}
+                        <button onclick="document.getElementById('id02').style.display='block'" class="btn btn-outline-danger btn-sm">Edit Booking</button>
+                        <div id="id02" class="modal">
+                            <span onclick="document.getElementById('id02').style.display='none'" class="close" title="Close Modal">X</span>
+                            <form class="modal-content" action="/action_page.php">
+                              <div class="container">
+                                <h1>Edit Booking</h1>
+                                <p>Are you sure you want to make changes to your booking?</p>
+                                <div class="clearfix">
+                                  <button type="button" onclick="document.getElementById('id02').style.display='none'" class="cancelbtn">Keep Booking</button>
+                                  <a href="{% url 'user_update' table_booking.id %}" class="deletebtn btn btn-outline-danger btn-sm">Change Booking</a>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                    </div>
+                    <div class="card-footer text-body-secondary">
                         <button onclick="document.getElementById('id01').style.display='block'" class="btn btn-outline-danger btn-sm">Cancel Booking</button>
                         <div id="id01" class="modal">
                             <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">X</span>
@@ -44,23 +55,18 @@
                               </div>
                             </form>
                           </div>
-                        {% endif %}
                     </div>
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
-
 {% else %}
-
     <div class="shadow p-4 mb-5 bg-body bg-body rounded text-black  m-5">
         <h1 class="p-2  ms-3">First Sign in!</h1>
-        <a href="{% url 'register_user' %}" class="btn btn-primary text-white">Sign in</a>
+        <a href="{% url 'login_user' %}" class="btn btn-primary text-white">Sign in</a>
     </div>
-
 {% endif %}
-
-
 {% endblock %}
