@@ -264,3 +264,13 @@ def check_edit_time(times, day, id):
         if Table_Booking.objects.filter(day=day, time=k).count() < 1 or time == k:
             x.append(k)
     return x
+
+def delete_booking(request, booking_id):
+	table_booking = Table_Booking.objects.get(pk=booking_id)
+	if request.user.is_authenticated:
+		table_booking.delete()
+		messages.success(request, ("Booking successfully cancelled!"))
+		return redirect('user_panel')
+	else:
+		messages.success(request, ("You aren't authorised to do that!"))
+		return redirect('user_panel')
