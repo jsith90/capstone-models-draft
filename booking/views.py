@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from .models import *
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 def index(request):
     return render(request, "booking/index.html",{})
@@ -78,10 +79,13 @@ def table_booking_submit(request):
 @login_required
 def user_panel(request):
     user = request.user
-    table_bookings = Table_Booking.objects.filter(user=user).order_by('day', 'time')
+    current_date = datetime.now().date()
+    table_bookings = Table_Booking.objects.filter(user=user, day__gte=current_date).order_by('day', 'time')
+    today = date.today() 
     return render(request, 'booking/user_panel.html', {
         'user':user,
         'table_bookings':table_bookings,
+        'today': today,
     })
 
 def user_update(request, id):
@@ -134,7 +138,7 @@ def user_update_submit(request, id):
                                 day = day,
                                 time = time,
                             ) 
-                            messages.success(request, "Table Booking Edited!")
+                            messages.success(request, "Your Booking Has Been Successfully Updated!")
                             return redirect('index')
                         else:
                             messages.success(request, "The Selected Time Has Been Taken!")
