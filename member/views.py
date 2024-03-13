@@ -48,15 +48,18 @@ def register_user(request):
 @login_required
 def details_update(request, id):
 	user = User.objects.get(pk=id)
-	if request.method == 'POST':
-		form = UserUpdateForm(request.POST, instance=user)
-		if form.is_valid():
-			form.save()
-			messages.success(request, "User details updated successfully.")
-			return redirect('user_panel')
+	if request.user == user:
+		if request.method == 'POST':
+			form = UserUpdateForm(request.POST, instance=user)
+			if form.is_valid():
+				form.save()
+				messages.success(request, "User details updated successfully.")
+				return redirect('user_panel')
+		else:
+			form = UserUpdateForm(instance=user)
+		return render(request, 'authenticate/details_update.html', {'form': form})
 	else:
-		form = UserUpdateForm(instance=user)
-	return render(request, 'authenticate/details_update.html', {'form': form})
+		return render(request, 'booking/index.html')
 
 def password_update(request):
 	if request.method == 'POST':

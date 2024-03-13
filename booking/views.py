@@ -96,12 +96,16 @@ def user_update(request, id):
     delta24 = (user_date_selected).strftime('%Y-%m-%d') >= (today + timedelta(days=1)).strftime('%Y-%m-%d')
     days_open = valid_day(22)
     validate_days = is_day_valid(days_open)
-    if request.method == 'POST':
-        table = request.POST.get('table')
-        day = request.POST.get('day')
-        request.session['day'] = day
-        request.session['table'] = table
-        return redirect('user_update_submit', id=id)
+    if request.user == table_booking.user:
+        if   request.method == 'POST':
+            table = request.POST.get('table')
+            day = request.POST.get('day')
+            request.session['day'] = day
+            request.session['table'] = table
+            return redirect('user_update_submit', id=id)
+    else:
+        messages.success(request, "Unauthorised access.")
+        return render(request, 'booking/index.html')
     return render(request, 'booking/user_update.html', {
             'days_open':days_open,
             'validate_days':validate_days,
@@ -124,38 +128,41 @@ def user_update_submit(request, id):
     hour = check_edit_time(times, day, id)
     table_booking = Table_Booking.objects.get(pk=id)
     user_selected_time = table_booking.time
-    if request.method == 'POST':
-        time = request.POST.get("time")
-        date = day_to_day_open(day)
-        if table != None:
-            if day <= max_date and day >= min_date:
-                if date == 'Thursday' or date == 'Friday' or date == 'Saturday' or date == 'Sunday':
-                    if Table_Booking.objects.filter(day=day).count() < 40:
-                        if Table_Booking.objects.filter(day=day, time=time).count() < 1 or user_selected_time == time:
-                            Table_Booking_Form = Table_Booking.objects.filter(pk=id).update(
-                                user = user,
-                                table = table,
-                                day = day,
-                                time = time,
-                            ) 
-                            messages.success(request, "Your Booking Has Been Successfully Updated!")
-                            return redirect('index')
+    if user == table_booking.user:
+        if request.method == 'POST':
+            time = request.POST.get("time")
+            date = day_to_day_open(day)
+            if table != None:
+                if day <= max_date and day >= min_date:
+                    if date == 'Thursday' or date == 'Friday' or date == 'Saturday' or date == 'Sunday':
+                        if Table_Booking.objects.filter(day=day).count() < 40:
+                            if Table_Booking.objects.filter(day=day, time=time).count() < 1 or user_selected_time == time:
+                                Table_Booking_Form = Table_Booking.objects.filter(pk=id).update(
+                                    user = user,
+                                    table = table,
+                                    day = day,
+                                    time = time,
+                                ) 
+                                messages.success(request, "Your Booking Has Been Successfully Updated!")
+                                return redirect('index')
+                            else:
+                                messages.success(request, "The Selected Time Has Been Taken!")
                         else:
-                            messages.success(request, "The Selected Time Has Been Taken!")
+                            messages.success(request, "The Selected Day Is Full!")
                     else:
-                        messages.success(request, "The Selected Day Is Full!")
+                        messages.success(request, "The Selected Date Is Incorrect")
                 else:
-                    messages.success(request, "The Selected Date Is Incorrect")
-            else:
                     messages.success(request, "The Selected Date Isn't In The Correct Time Period!")
-        else:
-            messages.success(request, "Please Select Your Table!")
-        return redirect('user_panel')
-    return render(request, 'booking/user_update_submit.html', {
+            else:
+                messages.success(request, "Please Select Your Table!")
+            return redirect('user_panel')
+        return render(request, 'booking/user_update_submit.html', {
         'times':hour,
         'id': id,
-    })
-
+        })
+    else:
+        return render(request, 'booking/index.html')
+        
 def staff_panel(request):
     today = datetime.today()
     min_date = today.strftime('%Y-%m-%d')
